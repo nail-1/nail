@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>美甲笔试测试</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Check if user is activated
+        if (!localStorage.getItem('nail_activation_code') || !localStorage.getItem('nail_phone')) {
+            window.location.href = 'login.html';
+        }
+    </script>
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <button id="back-btn" class="back-btn hidden">← 返回</button>
+            <div id="title">美甲笔试题</div>
+        </header>
+
+        <!-- Home Screen -->
+        <div id="home-screen" class="content"
+            style="text-align: center; justify-content: center; display: flex; flex-direction: column;">
+            <div class="menu-card">
+                <h2>欢迎练习</h2>
+                <p>共 <span id="total-count">0</span> 道题</p>
+                <button id="start-btn" class="nav-btn primary-btn large-btn">顺序练习</button>
+                <button id="random-btn" class="nav-btn large-btn"
+                    style="margin-top: 10px; background: #87CEEB; color: #333;">🎲 随机练习</button>
+            </div>
+
+            <div class="menu-card" style="margin-top: 20px;">
+                <h2>错题本</h2>
+                <p>累计错题: <span id="mistake-count">0</span></p>
+                <button id="review-btn" class="nav-btn large-btn">错题巩固</button>
+            </div>
+        </div>
+
+        <!-- Quiz Section (Hidden initially) -->
+        <div id="quiz-section" class="hidden"
+            style="display: flex; flex-direction: column; height: 100%; overflow: hidden; flex: 1;">
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+
+            <div id="quiz-container" class="content">
+                <div id="question-info" style="margin-bottom: 10px; font-weight: bold; color: #666;">
+                    Question <span id="current-q">1</span> / <span id="total-q">100</span>
+                </div>
+
+                <div id="q-text" class="question-text"
+                    style="white-space: pre-wrap; text-align: left; background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 1rem; line-height: 1.5;">
+                </div>
+
+                <div id="options" class="options-grid">
+                    <button class="option-btn" data-value="A">A</button>
+                    <button class="option-btn" data-value="B">B</button>
+                    <button class="option-btn" data-value="C">C</button>
+                    <button class="option-btn" data-value="D">D</button>
+                </div>
+                <div id="feedback-msg"></div>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div id="result-container" class="content hidden result-screen">
+            <h2>测试结束!</h2>
+            <div class="score-display">
+                <span id="score">0</span> / <span id="score-total">0</span>
+            </div>
+            <p>感谢您的参与</p>
+            <button id="restart-btn" class="nav-btn primary-btn" style="margin-top: 20px;">返回主页</button>
+            <br><br>
+            <div id="answer-summary" style="text-align: left; width: 100%;">
+                <!-- Summary will be injected here -->
+            </div>
+        </div>
+
+        <footer id="footer-nav" class="hidden">
+            <button id="prev-btn" class="nav-btn">上一题</button>
+            <button id="next-btn" class="nav-btn primary-btn">下一题</button>
+        </footer>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
