@@ -5,6 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMode = 'ALL'; // 'ALL' or 'MISTAKE'
     let currentQuestions = [];
     let currentIndex = 0;
+    let firebaseSyncEnabled = false;
+
+    // Get activation code for Firebase sync
+    const activationCode = localStorage.getItem('nail_activation_code');
 
     // User answers for the current session
     let sessionAnswers = [];
@@ -44,8 +48,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreSpan = document.getElementById('score');
     const answerSummary = document.getElementById('answer-summary');
 
+    // --- Firebase Sync Functions ---
+    async function loadFromFirebase() {
+        if (!window.firebaseReady || !activationCode) return;
+
+        try {
+            const db = window.firebaseDB;
+            const docRef = window.firebaseDoc(db, 'activations', activationCode);
+            const docSnap = await window.firebaseGetDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.wrongIndexes && Array.isArray(data.wrongIndexes)) {
+                    wrongIndexes = data.wrongIndexes;
+                    localStorage.setItem(WRONG_KEY, JSON.stringify(wrongIndexes));
+                    updateHomeCounts();
+                    console.log('✅ Synced from Firebase:', wrongIndexes.length, 'wrong answers');
+                }
+            }
+            firebaseSyncEnabled = true;
+        } catch (error) {
+            console.error('Firebase load error:', error);
+        }
+    }
+
+    async function saveToFirebase() {
+        if (!firebaseSyncEnabled || !activationCode) return;
+
+        try {
+            const db = window.firebaseDB;
+            const docRef = window.firebaseDoc(db, 'activations', activationCode);
+            await window.firebaseUpdateDoc(docRef, {
+                wrongIndexes: wrongIndexes
+            });
+            console.log('✅ Saved to Firebase:', wrongIndexes.length, 'wrong answers');
+        } catch (error) {
+            console.error('Firebase save error:', error);
+        }
+    }
+
     // --- Init ---
     updateHomeCounts();
+
+    // Wait for Firebase to be ready, then load data
+    if (window.firebaseReady) {
+        loadFromFirebase();
+    } else {
+        window.addEventListener('firebaseReady', loadFromFirebase);
+    }
 
     // --- Event Listeners: Menu ---
     startBtn.addEventListener('click', () => {
@@ -269,8 +319,11 @@ document.addEventListener('DOMContentLoaded', () => {
             wrongIndexes = wrongIndexes.filter(idx => idx !== actualIndex);
         }
 
-        // Save
+        // Save locally
         localStorage.setItem(WRONG_KEY, JSON.stringify(wrongIndexes));
+
+        // Sync to Firebase
+        saveToFirebase();
     }
 
     function finishQuiz() {
