@@ -217,7 +217,18 @@
                     // Code exists - check if device matches
                     const data = docSnap.data();
 
-                    if (data.deviceId === deviceId && data.phone === phone) {
+                    // Check if code has been activated (has deviceId)
+                    if (!data.deviceId) {
+                        // Code exists but not activated yet - activate now!
+                        await setDoc(docRef, {
+                            phone: phone,
+                            deviceId: deviceId,
+                            activatedAt: new Date().toISOString(),
+                            userAgent: navigator.userAgent
+                        });
+                        showMessage('激活成功！', 'success');
+                        setTimeout(() => saveAndRedirect(code, phone), 1000);
+                    } else if (data.deviceId === deviceId && data.phone === phone) {
                         // Same device, same phone - allow login
                         saveAndRedirect(code, phone);
                     } else if (data.deviceId !== deviceId) {
