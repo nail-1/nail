@@ -239,22 +239,15 @@
                         showMessage('手机号码不匹配', 'error');
                     }
                 } else {
-                    // Code doesn't exist in database - NEW activation
+                    // Code doesn't exist in database - INVALID CODE
                     if (isAutoLogin) {
                         // Auto login failed, clear local data
                         localStorage.removeItem('nail_activation_code');
                         localStorage.removeItem('nail_phone');
                         showMessage('请重新激活', 'error');
                     } else {
-                        // First time activation - save to database
-                        await setDoc(docRef, {
-                            phone: phone,
-                            deviceId: deviceId,
-                            activatedAt: new Date().toISOString(),
-                            userAgent: navigator.userAgent
-                        });
-                        showMessage('激活成功！', 'success');
-                        setTimeout(() => saveAndRedirect(code, phone), 1000);
+                        // Code is not pre-registered - reject!
+                        showMessage('❌ 无效激活码，请联系管理员获取正确的激活码', 'error');
                     }
                 }
             } catch (error) {
