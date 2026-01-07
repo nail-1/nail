@@ -22,3 +22,7 @@ ENV/
 *.tmp
 *.log
 
+# Images
+web_app/images/*.jpg
+web_app/images/*.txt
+
