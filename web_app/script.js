@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- State ---
-    const WRONG_KEY = 'nail_test_wrong_ids';
-    let wrongIds = JSON.parse(localStorage.getItem(WRONG_KEY) || '[]');
+    const WRONG_KEY = 'nail_test_wrong_indexes';
+    let wrongIndexes = JSON.parse(localStorage.getItem(WRONG_KEY) || '[]');
     let currentMode = 'ALL'; // 'ALL' or 'MISTAKE'
     let currentQuestions = [];
     let currentIndex = 0;
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     reviewBtn.addEventListener('click', () => {
-        if (wrongIds.length === 0) {
+        if (wrongIndexes.length === 0) {
             alert("暂时没有错题记录！加油！");
             return;
         }
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showFeedback(selectedVal, currentQ.answer);
 
             // Persistence Logic
-            handlePersistence(currentQ.id, isCorrect);
+            handlePersistence(currentIndex, isCorrect);
 
             // Auto-advance if correct
             if (isCorrect) {
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateHomeCounts() {
         totalCountSpan.textContent = questions.length;
-        mistakeCountSpan.textContent = wrongIds.length;
+        mistakeCountSpan.textContent = wrongIndexes.length;
     }
 
     function returnToHome() {
@@ -151,8 +151,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 [currentQuestions[i], currentQuestions[j]] = [currentQuestions[j], currentQuestions[i]];
             }
         } else {
-            // MISTAKE mode - Filter questions that are in wrongIds
-            currentQuestions = questions.filter(q => wrongIds.includes(q.id));
+            // MISTAKE mode - Filter questions by their original index
+            currentQuestions = wrongIndexes.map(idx => questions[idx]).filter(q => q !== undefined);
         }
 
         // Reset Session
@@ -244,25 +244,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function handlePersistence(questionId, isCorrect) {
-        // If wrong, add to wrongIds if not present
-        // If correct, remove from wrongIds? 
-        // Strategy: Mistake consolidation usually keeps it until you get it right IN MISTAKE MODE?
-        // Or if you get it right in normal mode, it clears?
-        // Let's say: If you answer correctly, we remove it from the list (mastery).
-        // If you answer wrongly, we add it.
+    function handlePersistence(questionIndex, isCorrect) {
+        // Use actual question index from the questions array
+        let actualIndex = questionIndex;
+
+        // For ALL/RANDOM mode, currentQuestions[questionIndex] is correct
+        // We need to find the original index in the full questions array
+        if (currentMode !== 'MISTAKE') {
+            const currentQ = currentQuestions[questionIndex];
+            actualIndex = questions.indexOf(currentQ);
+        } else {
+            // In MISTAKE mode, get the original index from wrongIndexes
+            actualIndex = wrongIndexes[questionIndex];
+        }
+
+        if (actualIndex === -1) return;
 
         if (!isCorrect) {
-            if (!wrongIds.includes(questionId)) {
-                wrongIds.push(questionId);
+            if (!wrongIndexes.includes(actualIndex)) {
+                wrongIndexes.push(actualIndex);
             }
         } else {
-            // Remove from wrongIds if it exists
-            wrongIds = wrongIds.filter(id => id !== questionId);
+            // Remove from wrongIndexes if it exists
+            wrongIndexes = wrongIndexes.filter(idx => idx !== actualIndex);
         }
 
         // Save
-        localStorage.setItem(WRONG_KEY, JSON.stringify(wrongIds));
+        localStorage.setItem(WRONG_KEY, JSON.stringify(wrongIndexes));
     }
 
     function finishQuiz() {
