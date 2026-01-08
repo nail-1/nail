@@ -22,9 +22,11 @@ ENV/
 *.tmp
 *.log
 
-# Images
+# Images (large files, not needed in git)
 web_app/images/*.jpg
 web_app/images/*.txt
 docs/images/*.jpg
 docs/images/*.txt
 
+# Admin tools (don't push to public repo)
+web_app/admin/

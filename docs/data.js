@@ -117,7 +117,7 @@ const questions = [
   {
     "id": 24,
     "text": "The body organ that removes toxic products of digestion is the\n人体排除消化有毒物质的器官是什么？\n\na. Liver b. Heart c. Kidney d. Stomach a. 肝脏b.心脏c.肾d.胃 3-268",
-    "answer": "B"
+    "answer": "A"
   },
   {
     "id": 25,

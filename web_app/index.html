@@ -7,10 +7,25 @@
     <title>美甲笔试测试</title>
     <link rel="stylesheet" href="style.css">
     <script>
-        // Check if user is activated
-        if (!localStorage.getItem('nail_activation_code') || !localStorage.getItem('nail_phone')) {
-            window.location.href = 'login.html';
-        }
+        // Enhanced activation check - verify both localStorage AND will verify against Firebase on load
+        (function () {
+            const code = localStorage.getItem('nail_activation_code');
+            const phone = localStorage.getItem('nail_phone');
+            const deviceId = localStorage.getItem('nail_device_id');
+
+            // Basic check - must have all three
+            if (!code || !phone || !deviceId) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Anti-tampering: check if deviceId format is valid
+            if (!deviceId.startsWith('device_') || deviceId.length < 20) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+                return;
+            }
+        })();
     </script>
 </head>
 
