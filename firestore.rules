@@ -1,0 +1,48 @@
+rules_version = '2';
+
+// nail-b268d — 美甲笔试题激活码规则
+//
+// 部署方式（二选一）：
+//   1) 控制台：Firebase Console → Firestore Database → 规则 → 粘贴 → 发布
+//   2) 命令行：npx firebase login && npx firebase deploy --only firestore:rules
+//
+// 背景：项目建于 2026-01-07，当时用的是"测试模式"规则
+// (allow read, write: if request.time < timestamp.date(...))，30 天后自动失效，
+// 导致 login.html 和生成器同时报 Missing or insufficient permissions。
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /activations/{code} {
+
+      // 学员端 login.html：凭激活码精确读取单条文档。
+      // 放行 get、但把 list 关掉 —— 必须已经知道码才查得到，
+      // 任何人都无法列举或批量导出整个激活码集合。
+      allow get:  if true;
+      allow list: if request.auth != null;
+
+      // 学员端首次激活：文档原本没有 deviceId，写入时绑定设备与手机号。
+      // 已绑定过的文档不再接受匿名写入，别人无法抢占或篡改他人的激活记录。
+      allow update: if request.auth != null
+                    || (
+                         !('deviceId' in resource.data)
+                         && request.resource.data.deviceId is string
+                         && request.resource.data.phone is string
+                         && request.resource.data.keys().hasOnly(
+                              ['phone', 'deviceId', 'activatedAt', 'userAgent'])
+                       );
+
+      // 发新码 / 删码：只有管理员（已通过 Firebase Auth 登录）或控制台可以做。
+      allow create, delete: if request.auth != null;
+    }
+  }
+}
+
+// 已知遗留限制（不是本次规则引入的，是纯前端校验架构决定的）：
+//
+// login.html 必须把整条激活记录读到浏览器里才能比对 deviceId 和手机号，
+// 所以"知道激活码的人"就能看到该码绑定的手机号。规则层面无法只返回部分字段。
+//
+// 因此不要再用 NAIL001 / NAIL002 这种连号短码 —— 猜到 NAIL002 就等于拿到
+// 那位学员的手机号。请改用生成器产出的 NAIL-XXXX-XXXX 随机格式（32^8 ≈ 1.1 万亿种）。
+// 要彻底根治需要把校验挪到 Cloud Functions 服务端，那是另一件事。

@@ -30,3 +30,6 @@ docs/images/*.txt
 
 # Admin tools (don't push to public repo)
 web_app/admin/
+
+# 试卷原图转换产物（仓库是公开的，别把学员试卷照片推上去）
+*_converted.jpg
